@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Robin\Bangla\Date;
+namespace S1K3\Bangla\Date;
 
 
 class BanglaDate

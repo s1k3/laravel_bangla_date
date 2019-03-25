@@ -1,8 +1,8 @@
 <?php
 
-namespace Robin\Bangla\Date;
+namespace S1K3\Bangla\Date;
 
-use Carbon\Laravel\ServiceProvider;
+use Illuminate\Support\ServiceProvider;
 
 class BanglaDateServiceProvider extends ServiceProvider
 {

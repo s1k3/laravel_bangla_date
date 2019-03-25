@@ -1,6 +1,6 @@
 <?php
 
-use Robin\Bangla\Date\BanglaDate;
+use S1K3\Bangla\Date\BanglaDate;
 
 function bangla_date($timestamp)
 {
