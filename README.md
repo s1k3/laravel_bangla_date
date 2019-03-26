@@ -1,4 +1,4 @@
-#####Laravel Library for converting english Date to Bangls
+#####Laravel Library for converting English Date to Bangla
 
 For Installation follow the following steps:
 
