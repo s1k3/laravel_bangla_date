@@ -6,6 +6,7 @@ namespace S1K3\Bangla\Date;
 
 class BanglaDate
 {
+    private $timestamp;
     private $morning;
     private $engHour;
     private $engDate;
@@ -23,6 +24,7 @@ class BanglaDate
 
     private function __construct($timestamp)
     {
+        $this->timestamp = $timestamp;
         $this->engDate = date('d', $timestamp);
         $this->engMonth = date('m', $timestamp);
         $this->engYear = date('Y', $timestamp);
@@ -75,6 +77,12 @@ class BanglaDate
         return $converted;
     }
 
+    function bangla_font_month($name)
+    {
+        $months = ["Jan" => "জানুয়ারি", "Feb" => "ফেব্রুয়ারি", "Mar" => "মার্চ", "Apr" => "এপ্রিল", "May" => "মে", "Jun" => "জুন", "Jul" => "জুলাই", "Aug" => "আগস্ট", "Sep" => "সেপ্টেম্বর", "Oct" => "অক্টোবর", "Nov" => "নভেম্বর", "Dec" => "ডিসেম্বর"];
+        return $months[$name];
+    }
+
 
     function convert()
     {
@@ -82,8 +90,16 @@ class BanglaDate
         $this->bangYear = $this->bangla_number($this->bangYear);
     }
 
-    function get_date()
+    function get_bangla_date()
     {
         return $this->bangDate . " " . $this->bangMonth . " " . $this->bangYear;
+    }
+
+    function get_english_date()
+    {
+        $day = date("d", $this->timestamp);
+        $month = date("M", $this->timestamp);
+        $year = date("Y", $this->timestamp);
+        return $this->bangla_number($day) . " " . $this->bangla_font_month($month) . " " . $this->bangla_number($year);
     }
 }

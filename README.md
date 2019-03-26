@@ -13,12 +13,18 @@ For Installation follow the following steps:
 
 3. Execute the following command from the command-line to publish the package's config and the default template to start generating awesome code.
 ``` php
-php artisan vendor:publish --provider="S1K3\Bangla\Date\BanglaDateServiceProvider" --tag=default
+php artisan vendor:publish --provider="S1K3\Bangla\Date\BanglaDateServiceProvider"
 ```
 
 Basic Usage:
 ``` php
-{{bangla_date(time())}}
+bangla_date(time()) // ১২ চৈত্র ১৪২৫
+```
+``` php
+bangla_date(time(),"en") // OUTPUT ২৬ মার্চ ২০১৯
+```
+``` php
+bangla_date(time(),"bn") // ১২ চৈত্র ১৪২৫
 ```
 
 Configuration: 
@@ -29,7 +35,7 @@ return [
 ];
 ```
 
-hour | Description
+property | Description
 ------------ | -------------
-0 | If 0, then date will change instantly
-6 | If it's 6, date will change at 6'0 clock at the morning. Default is 6'0 clock at the morning
+format | 'en' for english format. 'bn' for bangla format
+hour | If 0, then date will change instantly. If it's 6, date will change at 6'0 clock at the morning. Default is 6'0 clock at the morning
