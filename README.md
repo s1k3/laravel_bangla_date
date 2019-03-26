@@ -31,7 +31,8 @@ Configuration:
 
 ``` php
 return [
-    'hour' => 6
+    'hour' => 6,
+    'format' => 'bn'
 ];
 ```
 
