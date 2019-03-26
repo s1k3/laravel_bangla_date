@@ -1,6 +1,6 @@
 {
-    "name": "s1k3/bangla-date",
-    "description": "Convert English date to corresponding Bangla Date",
+    "name": "s1k3/bangladate",
+    "description": "Laravel Library for converting English date to corresponding Bangla Date",
     "type": "library",
     "license": "MIT",
     "minimum-stability": "dev",
