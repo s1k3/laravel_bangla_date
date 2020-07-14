@@ -18,13 +18,16 @@ php artisan vendor:publish --provider="S1K3\Bangla\Date\BanglaDateServiceProvide
 
 Basic Usage:
 ``` php
-bangla_date(time()) // ১২ চৈত্র ১৪২৫
+bangla_date(time()) // OUTPUT ১২ চৈত্র ১৪২৫
 ```
 ``` php
 bangla_date(time(),"en") // OUTPUT ২৬ মার্চ ২০১৯
 ```
 ``` php
-bangla_date(time(),"bn") // ১২ চৈত্র ১৪২৫
+bangla_date(time(),"bn") // OUTPUT ১২ চৈত্র ১৪২৫
+```
+``` php
+bangla_date(time(),"bn","d-m-y") // OUTPUT  ১২-চৈত্র-১৪২৫
 ```
 
 Configuration: 
@@ -32,11 +35,21 @@ Configuration:
 ``` php
 return [
     'hour' => 6,
-    'format' => 'bn'
+    'language' => 'bn',
+    'format' => 'd m, y'
 ];
 ```
 
 property | Description
 ------------ | -------------
-format | 'en' for english format. 'bn' for bangla format
+format | Date formatting.
+language | 'en' for english format. 'bn' for bangla format
 hour | If 0, then date will change instantly. If it's 6, date will change at 6'0 clock at the morning. Default is 6'0 clock at the morning
+
+Supported values for **format**.
+
+property | Description
+------------ | -------------
+m | Month
+d | Day
+y | Year

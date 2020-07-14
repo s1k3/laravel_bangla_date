@@ -1,5 +1,6 @@
 <?php
 return [
     'hour' => 6,
-    'format' => 'bn'
+    'language' => 'bn',
+    'format' => 'd m, y'
 ];

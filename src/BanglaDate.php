@@ -90,16 +90,24 @@ class BanglaDate
         $this->bangYear = $this->bangla_number($this->bangYear);
     }
 
-    function get_bangla_date()
+    function get_bangla_date($format)
     {
-        return $this->bangDate . " " . $this->bangMonth . " " . $this->bangYear;
+        $result = str_replace("d", $this->bangDate, $format);
+        $result = str_replace("m", $this->bangMonth, $result);
+        $result = str_replace("y", $this->bangYear, $result);
+        return $result;
     }
 
-    function get_english_date()
+    function get_english_date($format)
     {
-        $day = date("d", $this->timestamp);
-        $month = date("M", $this->timestamp);
-        $year = date("Y", $this->timestamp);
-        return $this->bangla_number($day) . " " . $this->bangla_font_month($month) . " " . $this->bangla_number($year);
+        $day = $this->bangla_number(date("d", $this->timestamp));
+        $month = $this->bangla_font_month(date("M", $this->timestamp));
+        $year = $this->bangla_number(date("Y", $this->timestamp));
+
+        $result = str_replace("d", $day, $format);
+        $result = str_replace("m", $month, $result);
+        $result = str_replace("y", $year, $result);
+
+        return $result;
     }
 }
