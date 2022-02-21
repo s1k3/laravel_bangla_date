@@ -29,7 +29,7 @@ class BanglaDate
         $this->engMonth = date('m', $timestamp);
         $this->engYear = date('Y', $timestamp);
         $this->morning = config("bangla_date.hour");
-        $this->engHour = date('G', $timestamp);
+        $this->engHour = date('h', $timestamp);
         $this->calculate_date();
         $this->calculate_year();
         $this->convert();
