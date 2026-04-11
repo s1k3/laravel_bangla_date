@@ -1,113 +1,184 @@
 <?php
 
-
 namespace S1K3\Bangla\Date;
-
 
 class BanglaDate
 {
-    private $timestamp;
-    private $morning;
-    private $engHour;
-    private $engDate;
-    private $engMonth;
-    private $engYear;
-    private $bangDate;
-    private $bangMonth;
-    private $bangYear;
+    private const MONTHS = [
+        'পৌষ', 'মাঘ', 'ফাল্গুন', 'চৈত্র', 'বৈশাখ', 'জ্যৈষ্ঠ',
+        'আষাঢ়', 'শ্রাবণ', 'ভাদ্র', 'আশ্বিন', 'কার্তিক', 'অগ্রহায়ণ',
+    ];
 
-    private $bn_months = array("পৌষ", "মাঘ", "ফাল্গুন", "চৈত্র", "বৈশাখ", "জ্যৈষ্ঠ", "আষাঢ়", "শ্রাবণ", "ভাদ্র", "আশ্বিন", "কার্তিক", "অগ্রহায়ণ");
-    private $bn_month_dates = array(30, 30, 30, 30, 31, 31, 31, 31, 31, 30, 30, 30);
-    private $bn_month_middate = array(13, 12, 14, 13, 14, 14, 15, 15, 15, 15, 14, 14);
-    private $lipyearindex = 3;
+    private const MONTH_DAYS = [30, 30, 30, 30, 31, 31, 31, 31, 31, 30, 30, 30];
 
+    private const MONTH_MIDDATE = [13, 12, 14, 13, 14, 14, 15, 15, 15, 15, 14, 14];
 
-    private function __construct($timestamp)
-    {
-        $this->timestamp = $timestamp;
-        $this->engDate = date('d', $timestamp);
-        $this->engMonth = date('m', $timestamp);
-        $this->engYear = date('Y', $timestamp);
-        $this->morning = config("bangla_date.hour");
-        $this->engHour = date('h', $timestamp);
-        $this->calculate_date();
-        $this->calculate_year();
+    /** English month (1-based) in which Phalguna gains an extra day during leap years */
+    private const LEAP_MONTH = 3;
+
+    private readonly int $engDate;
+    private readonly int $engMonth;
+    private readonly int $engYear;
+    private readonly int $engHour;
+    private readonly int $morning;
+
+    private int $bangDateInt = 0;
+    private string $bangDate = '';
+    private string $bangMonth = '';
+    private int $bangYearInt = 0;
+    private string $bangYear = '';
+
+    private function __construct(
+        private readonly int $timestamp,
+        ?int $morningHour = null,
+    ) {
+        $this->engDate  = (int) date('d', $timestamp);
+        $this->engMonth = (int) date('m', $timestamp);
+        $this->engYear  = (int) date('Y', $timestamp);
+        $this->engHour  = (int) date('G', $timestamp); // 24-hour (0–23); fixes PM rollback bug
+        $this->morning  = $morningHour ?? (int) config('bangla_date.hour', 6);
+
+        $this->calculateDate();
+        $this->calculateYear();
         $this->convert();
     }
 
-    public static function Instance($timestamp)
+    /**
+     * Create a BanglaDate from a Unix timestamp.
+     *
+     * @param int      $timestamp   Unix timestamp
+     * @param int|null $morningHour Hour (0–23) at which the Bangla day starts;
+     *                              defaults to the bangla_date.hour config value.
+     */
+    public static function instance(int $timestamp, ?int $morningHour = null): static
     {
-        return new BanglaDate($timestamp);
+        return new static($timestamp, $morningHour);
     }
 
-    private function calculate_date()
+    private function calculateDate(): void
     {
-        $this->bangDate = $this->engDate - $this->bn_month_middate[$this->engMonth - 1];
-        if ($this->engHour < $this->morning)
-            $this->bangDate -= 1;
+        $middate = self::MONTH_MIDDATE[$this->engMonth - 1];
 
-        if (($this->engDate <= $this->bn_month_middate[$this->engMonth - 1]) || ($this->engDate == $this->bn_month_middate[$this->engMonth - 1] + 1 && $this->engHour < $this->morning)) {
-            $this->bangDate += $this->bn_month_dates[$this->engMonth - 1];
-            if ($this->is_leapyear() && $this->lipyearindex == $this->engMonth)
-                $this->bangDate += 1;
-            $this->bangMonth = $this->bn_months[$this->engMonth - 1];
+        $this->bangDateInt = $this->engDate - $middate;
+
+        if ($this->engHour < $this->morning) {
+            $this->bangDateInt--;
+        }
+
+        $isStillPreviousMonth = $this->engDate <= $middate
+            || ($this->engDate === $middate + 1 && $this->engHour < $this->morning);
+
+        if ($isStillPreviousMonth) {
+            $days = self::MONTH_DAYS[$this->engMonth - 1];
+
+            if ($this->isLeapYear() && $this->engMonth === self::LEAP_MONTH) {
+                $days++;
+            }
+
+            $this->bangDateInt += $days;
+            $this->bangMonth    = self::MONTHS[$this->engMonth - 1];
         } else {
-            $this->bangMonth = $this->bn_months[($this->engMonth) % 12];
+            $this->bangMonth = self::MONTHS[$this->engMonth % 12];
         }
     }
 
-    function is_leapyear()
+    public function isLeapYear(): bool
     {
-        return ($this->engYear % 400 == 0 || ($this->engYear % 100 != 0 && $this->engYear % 4 == 0));
+        return $this->engYear % 400 === 0
+            || ($this->engYear % 100 !== 0 && $this->engYear % 4 === 0);
     }
 
-    function calculate_year()
+    /** @deprecated Use isLeapYear() */
+    public function is_leapyear(): bool
     {
-        $this->bangYear = $this->engYear - 593;
-        if (($this->engMonth < 4) || (($this->engMonth == 4) && (($this->engDate < 14) || ($this->engDate == 14 && $this->engHour < $this->morning))))
-            $this->bangYear -= 1;
+        return $this->isLeapYear();
     }
 
-    function bangla_number($int)
+    private function calculateYear(): void
     {
-        $engNumber = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 0);
-        $bangNumber = array('১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯', '০');
+        $this->bangYearInt = $this->engYear - 593;
 
-        $converted = str_replace($engNumber, $bangNumber, $int);
-        return $converted;
+        $isBeforeNewYear = $this->engMonth < 4
+            || ($this->engMonth === 4 && (
+                $this->engDate < 14
+                || ($this->engDate === 14 && $this->engHour < $this->morning)
+            ));
+
+        if ($isBeforeNewYear) {
+            $this->bangYearInt--;
+        }
     }
 
-    function bangla_font_month($name)
+    private function convert(): void
     {
-        $months = ["Jan" => "জানুয়ারি", "Feb" => "ফেব্রুয়ারি", "Mar" => "মার্চ", "Apr" => "এপ্রিল", "May" => "মে", "Jun" => "জুন", "Jul" => "জুলাই", "Aug" => "আগস্ট", "Sep" => "সেপ্টেম্বর", "Oct" => "অক্টোবর", "Nov" => "নভেম্বর", "Dec" => "ডিসেম্বর"];
-        return $months[$name];
+        $this->bangDate = $this->banglaNumber($this->bangDateInt);
+        $this->bangYear = $this->banglaNumber($this->bangYearInt);
     }
 
-
-    function convert()
+    public function banglaNumber(int|string $number): string
     {
-        $this->bangDate = $this->bangla_number($this->bangDate);
-        $this->bangYear = $this->bangla_number($this->bangYear);
+        return str_replace(
+            ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+            ['১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯', '০'],
+            (string) $number,
+        );
     }
 
-    function get_bangla_date($format)
+    /** @deprecated Use banglaNumber() */
+    public function bangla_number(int|string $int): string
     {
-        $result = str_replace("d", $this->bangDate, $format);
-        $result = str_replace("m", $this->bangMonth, $result);
-        $result = str_replace("y", $this->bangYear, $result);
-        return $result;
+        return $this->banglaNumber($int);
     }
 
-    function get_english_date($format)
+    public function banglaFontMonth(string $abbr): string
     {
-        $day = $this->bangla_number(date("d", $this->timestamp));
-        $month = $this->bangla_font_month(date("M", $this->timestamp));
-        $year = $this->bangla_number(date("Y", $this->timestamp));
+        static $months = [
+            'Jan' => 'জানুয়ারি', 'Feb' => 'ফেব্রুয়ারি', 'Mar' => 'মার্চ',
+            'Apr' => 'এপ্রিল',   'May' => 'মে',           'Jun' => 'জুন',
+            'Jul' => 'জুলাই',    'Aug' => 'আগস্ট',        'Sep' => 'সেপ্টেম্বর',
+            'Oct' => 'অক্টোবর',  'Nov' => 'নভেম্বর',      'Dec' => 'ডিসেম্বর',
+        ];
 
-        $result = str_replace("d", $day, $format);
-        $result = str_replace("m", $month, $result);
-        $result = str_replace("y", $year, $result);
+        return $months[$abbr] ?? $abbr;
+    }
 
-        return $result;
+    /** @deprecated Use banglaFontMonth() */
+    public function bangla_font_month(string $name): string
+    {
+        return $this->banglaFontMonth($name);
+    }
+
+    public function getBanglaDate(string $format): string
+    {
+        return str_replace(
+            ['d', 'm', 'y'],
+            [$this->bangDate, $this->bangMonth, $this->bangYear],
+            $format,
+        );
+    }
+
+    /** @deprecated Use getBanglaDate() */
+    public function get_bangla_date(string $format): string
+    {
+        return $this->getBanglaDate($format);
+    }
+
+    public function getEnglishDate(string $format): string
+    {
+        return str_replace(
+            ['d', 'm', 'y'],
+            [
+                $this->banglaNumber((int) date('d', $this->timestamp)),
+                $this->banglaFontMonth(date('M', $this->timestamp)),
+                $this->banglaNumber((int) date('Y', $this->timestamp)),
+            ],
+            $format,
+        );
+    }
+
+    /** @deprecated Use getEnglishDate() */
+    public function get_english_date(string $format): string
+    {
+        return $this->getEnglishDate($format);
     }
 }
